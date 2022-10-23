@@ -1,5 +1,8 @@
 package job;
 
-public class Lancer {
-
+public class Lancer extends Warrior {
+	public Lancer() {
+		super("창술사");
+	}
+	
 }

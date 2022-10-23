@@ -1,105 +1,88 @@
 package unit;
 
 import java.util.Random;
-
 public abstract class Unit {
 	
 	public static Random ran;
 	private String name;
-	private int hp;
-	private int mp;
-	private int att;
-	private int def;
-	private double lucky;//0.0~0.999;
-	private double accuracyRate;//0.0~0.999;
-	private int exp;//경험치
-	
-	public Unit(String name,int exp) {
+	private AutoAbility ability;
+	//배열을 가지고 있다.값으로 공격을 한다면.
+	//애가 가진 배열을 꺼내서 값을 대입
+	public Unit(String name) {
 		this.name = name;
-		this.exp = exp;
 		init();
 	}
-	//getter setter
-	public int getHp() {
-		return hp;
+	public Unit(String name,TypeStatistics type) {
+		this(name);
+		ability = new AutoAbility(type);
 	}
-	public void setHp(int hp) {
-		this.hp = hp;
+	public Unit(String name,TypeStatistics type,MonsterRace monster) {
+		this(name);
+		ability = new AutoAbility(type,monster);
 	}
-	public int getMp() {
-		return mp;
-	}
-	public void setMp(int mp) {
-		this.mp = mp;
-	}
-	public int getAtt() {
-		return att;
-	}
-	public void setAtt(int att) {
-		this.att = att;
-	}
-	public int getDef() {
-		return def;
-	}
-	public void setDef(int def) {
-		this.def = def;
-	}
-	public double getLucky() {
-		return lucky;
-	}
-	public void setLucky(double lucky) {
-		this.lucky = lucky;
-	}
-	public double getAccuracyRate() {
-		return accuracyRate;
-	}
-	public void setAccuracyRate(double accuracyRate) {
-		this.accuracyRate = accuracyRate;
-	}
-	public int getExp() {
-		return exp;
-	}
-	public void setExp(int exp) {
-		this.exp = exp;
-	}
-	public String getName() {
-		return name;
-	}
-	
 	private void init() {
 		ran = new Random();
 	}
-	private double rate() {
-		return Unit.ran.nextDouble();
+	private int getExp() {
+		return this.ability.getExp();
+	}
+	public int getPower() {
+		return this.ability.getAtt();
+	}
+	public int getHp() {
+		return this.ability.getHp();
+	}
+	public int getMp() {
+		return this.ability.getMp();
+	}
+	public String getName() {
+		return name;
 	}
 	//기본 공격 (공격력 계산은 직업,몬스터별로 따로적용)
 	public abstract void standardAttack(Unit unit);//약공격
 	//스매시 공격 (공격력 계산은 직업,몬스터별로 따로적용)
 	public abstract void smashAttack(Unit unit);//강공격
+	private int rate() {
+		return Unit.ran.nextInt(100);
+	}
 	//명중 여부
-	public boolean isAccuracy() {
-		return this.accuracyRate>rate();
+	private boolean isAccuracy() {
+		int myAccuary = this.ability.getAccuracy();
+		return myAccuary>rate();
 	}
-	//스매시 여부
-	public boolean isLucky() {
-		return this.lucky>rate();
+	private boolean isLucky() {
+		int myLucky = this.ability.getLucky();
+		return myLucky>rate();
 	}
-	
+	public boolean giveExp(Unit target) {
+		int myExp = this.getExp();
+		AutoAbility otherAbility = target.ability;
+		return otherAbility.addExp(myExp);
+	}
 	//실패 매서드
 	public void missMessage(Unit unit) {
 		String result =
-				String.format("%s이(가) %s에게 공격이 실패했습니다.",this.name,unit.name);
+				String.format("%s이(가) %s에게 공격시도가 실패했습니다.",this.name,unit.name);
 		System.out.println(result);
 	}
 	//공격 매서드 적용
 	public void attack(Unit unit) {
-		if(isLucky()&&isAccuracy()) {
-				smashAttack(unit);
+		if(isAccuracy()) {
+			missMessage(unit); return;
 		}
-		else if(!isLucky()&&isAccuracy()) {
-				standardAttack(unit);
+		if(isLucky()) {
+			smashAttack(unit); return;
 		}
-		else
-			missMessage(unit);
+		standardAttack(unit);
 	}
+	//데미지
+	public boolean hunt(int damage) {
+		int def = this.ability.getDef();
+		int calcDamage = def-damage;
+		if(def-damage>0) {
+			return false;
+		}
+		return this.ability.cutHp(calcDamage);
+	}
+	//죽음
 }

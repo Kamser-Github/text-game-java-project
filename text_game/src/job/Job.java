@@ -1,34 +1,28 @@
 package job;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import unit.Unit;
-import util.skill.Skill;
+import java.util.Scanner;
 
+import unit.TypeStatistics;
+import unit.Unit;
 public abstract class Job extends Unit{
-	
-	private HashMap<Integer,Skill> skills;
-	public Job(String name, int exp) {
-		super(name, exp);
-		init();
+	private Scanner sc;
+	public Job(String name, TypeStatistics type) {
+		super(name, type);
+		sc = new Scanner(System.in);
 	}
-	private void init() {
-		skills = new HashMap<Integer,Skill>();
+	public abstract double useSkill();
+	public abstract void showSkills();
+	public int chooseNumber() {
+		System.out.println("스킬 번호를 골라주세요");
+		return sc.nextInt()-1;
 	}
-	private void printSkillInfo(Integer i,Skill s) {
-		String skillNumber = 
-				String.format("%d번 스킬 : %s",i,s);
-		System.out.println(skillNumber);
+	public int skillDamage() {
+		return (int)Math.ceil(super.getPower()*useSkill());
 	}
-	private void printSkillList() {
-		skills.forEach((i,s)->printSkillInfo(i,s));
+	public int smashSkillDamage() {
+		return (int)Math.ceil(skillDamage()*smashRatio());
 	}
-	public void battle(ArrayList<Unit> units) {
-		printSkillList();
-		System.out.println("스킬을 선택해주세요.");
+	private double smashRatio() {
+		return (ran.nextInt(5)+12)/10;
 	}
-	private int executeSkill(Skill skill) {
-	}
-	public abstract void uniqueSkill(Unit unit);
-	
 }
